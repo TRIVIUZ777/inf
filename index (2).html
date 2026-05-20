@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagrama Interactivo – Escaldado y Cocción</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+      background: #0b1120;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .diagram-container {
+      width: 100%;
+      max-width: 1200px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border-radius: 40px;
+      box-shadow: 0 30px 45px rgba(0,0,0,0.7), inset 0 1px 1px rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 30px 20px;
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 25px;
+    }
+    h1 {
+      font-weight: 800;
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #fbbf24, #f97316);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+    }
+    .tree {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+    .tree-root {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .root-node {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      border: none;
+      color: white;
+      padding: 15px 35px;
+      border-radius: 40px;
+      font-weight: 700;
+      font-size: 1.4rem;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 20px rgba(249,115,22,0.4);
+    }
+    .branches {
+      display: flex;
+      justify-content: center;
+      gap: 80px;
+      flex-wrap: wrap;
+      position: relative;
+      width: 100%;
+    }
+    /* Línea vertical desde la raíz hacia abajo y luego horizontal a las ramas */
+    .branches::before {
+      content: '';
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      width: 0;
+      height: 15px;
+      border-left: 2px solid rgba(255,255,255,0.4);
+      transform: translateX(-50%);
+    }
+    .branch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .branch::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 2px;
+      height: 15px;
+      background: rgba(255,255,255,0.4);
+      transform: translateX(-50%);
+    }
+    .branch-node {
+      background: rgba(255,255,255,0.08);
+      border: 2px solid transparent;
+      padding: 12px 30px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 1.3rem;
+      margin-bottom: 25px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .branch-node:hover, .branch-node.active {
+      border-color: #f97316;
+      background: rgba(249,115,22,0.2);
+      box-shadow: 0 0 20px rgba(249,115,22,0.4);
+      transform: translateY(-3px);
+    }
+    .branch-children {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+    }
+    .branch-children::before {
+      content: '';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      width: 2px;
+      height: 12px;
+      background: rgba(255,255,255,0.4);
+      transform: translateX(-50%);
+    }
+    .child-node {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 10px 25px;
+      border-radius: 25px;
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .child-node::before {
+      content: '';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      width: 2px;
+      height: 12px;
+      background: rgba(255,255,255,0.4);
+      transform: translateX(-50%);
+    }
+    .child-node:hover, .child-node.active {
+      background: rgba(249,115,22,0.15);
+      border-color: #f97316;
+    }
+
+    .info-panel {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(15px);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 25px;
+      width: 100%;
+      max-width: 800px;
+      min-height: 150px;
+    }
+    .info-panel h3 {
+      color: #fbbf24;
+      font-size: 1.6rem;
+      margin-bottom: 12px;
+    }
+    .info-panel p, .info-panel li {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+    .info-panel ul { padding-left: 20px; }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .tag {
+      background: rgba(255,255,255,0.15);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .nav-bar {
+      display: flex;
+      gap: 25px;
+      align-items: center;
+    }
+    .nav-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .nav-btn:hover {
+      background: #f97316;
+      border-color: #f97316;
+    }
+    .nav-btn:disabled {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    .step-text {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 700px) {
+      .branches {
+        gap: 30px;
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="diagram-container">
+  <h1>🔥 Diagrama: Escaldado & Cocción</h1>
+
+  <div class="tree">
+    <div class="tree-root">
+      <div class="root-node">Transformación de Alimentos</div>
+      <div class="branches">
+        <!-- Rama Escaldado -->
+        <div class="branch" id="branchEscaldado">
+          <div class="branch-node" data-topic="raiz_escaldado">🧊 Escaldado</div>
+          <div class="branch-children">
+            <div class="child-node" data-topic="definicion_escaldado">📖 Definición</div>
+            <div class="child-node" data-topic="objetivos_escaldado">🎯 Objetivos</div>
+            <div class="child-node" data-topic="metodos_escaldado">⏱️ Métodos</div>
+            <div class="child-node" data-topic="efectos_escaldado">🔬 Efectos</div>
+            <div class="child-node" data-topic="errores_escaldado">⚠️ Errores</div>
+          </div>
+        </div>
+        <!-- Rama Cocción -->
+        <div class="branch" id="branchCoccion">
+          <div class="branch-node" data-topic="raiz_coccion">🍲 Cocción</div>
+          <div class="branch-children">
+            <div class="child-node" data-topic="definicion_coccion">📖 Definición</div>
+            <div class="child-node" data-topic="calor_seco">🔥 Calor Seco</div>
+            <div class="child-node" data-topic="calor_humedo">💧 Calor Húmedo</div>
+            <div class="child-node" data-topic="calor_mixto">🌀 Calor Mixto</div>
+            <div class="child-node" data-topic="comparativa">⚖️ vs Escaldado</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-panel" id="infoPanel">
+    <h3 id="infoTitle">Selecciona un nodo</h3>
+    <div id="infoContent">Haz clic en cualquier recuadro del diagrama para ver detalles.</div>
+  </div>
+
+  <div class="nav-bar">
+    <button class="nav-btn" id="prevBtn">◀ Anterior</button>
+    <span class="step-text" id="stepIndicator">Nodo 1 de 12</span>
+    <button class="nav-btn" id="nextBtn">Siguiente ▶</button>
+  </div>
+  <div style="color:#64748b; font-size:0.85rem;">Usa las flechas ← → del teclado para navegar por todos los conceptos.</div>
+</div>
+
+<script>
+  (function() {
+    // Contenido para cada nodo
+    const content = {
+      raiz_escaldado: {
+        title: '🧊 Escaldado (visión general)',
+        text: `<p>Pretratamiento breve con agua hirviendo y choque térmico. No es cocción completa, solo prepara el alimento para conservación, pelado o realce de color.</p>`
+      },
+      definicion_escaldado: {
+        title: '📖 Definición de Escaldado',
+        text: `<p>Inmersión en agua a 95-100 °C durante segundos/pocos minutos, seguida de enfriamiento rápido en agua con hielo (0-4 °C). Inactiva enzimas (polifenol oxidasa, peroxidasa) y fija el color.</p>`
+      },
+      objetivos_escaldado: {
+        title: '🎯 Objetivos',
+        text: `<ul><li>Inactivar enzimas</li><li>Fijar color</li><li>Reducir amargor</li><li>Facilitar pelado</li><li>Reducir carga microbiana</li><li>Preparar para congelación</li></ul>`
+      },
+      metodos_escaldado: {
+        title: '⏱️ Métodos y tiempos',
+        text: `<p>Agua hirviendo o vapor. Tiempos: Judías 2-3 min, Brócoli 2 min, Tomates 30-60 s, Almendras 1 min. Siempre finalizar con baño de hielo.</p>`
+      },
+      efectos_escaldado: {
+        title: '🔬 Efectos',
+        text: `<p><strong>Color:</strong> más brillante. <strong>Textura:</strong> crujiente pero ligeramente blanda. <strong>Sabor:</strong> suaviza amargor. <strong>Nutrientes:</strong> pérdida leve de vitamina C.</p>`
+      },
+      errores_escaldado: {
+        title: '⚠️ Errores comunes',
+        text: `<ul><li>No enfriar rápido</li><li>Tiempo excesivo</li><li>Poca agua</li></ul><p>Consejo: 1 L de agua por cada 100 g de verdura, baño de hielo listo.</p>`
+      },
+      raiz_coccion: {
+        title: '🍲 Cocción (visión general)',
+        text: `<p>Transformación completa mediante calor. Modifica textura, sabor, aroma y garantiza inocuidad. Tres tipos: seco, húmedo y mixto.</p>`
+      },
+      definicion_coccion: {
+        title: '📖 Definición de Cocción',
+        text: `<p>Aplicación de calor que provoca reacciones como Maillard, caramelización, gelatinización y desnaturalización de proteínas. Transferencia: conducción, convección, radiación.</p>`
+      },
+      calor_seco: {
+        title: '🔥 Calor Seco',
+        text: `<p>Altas temperaturas (120-250 °C) sin agua. Métodos: asado, plancha, salteado, fritura, gratinado. Ideal para carnes, pescados grasos, vegetales firmes.</p>`
+      },
+      calor_humedo: {
+        title: '💧 Calor Húmedo',
+        text: `<p>Medio: agua, vapor o caldo. Temperaturas 70-100 °C. Métodos: hervir, vapor, pochar, escalfar. Conserva más nutrientes que el calor seco.</p>`
+      },
+      calor_mixto: {
+        title: '🌀 Calor Mixto',
+        text: `<p>Combinación: primero dorado (seco) y luego cocción lenta en líquido. Métodos: guisar, estofar, brasear. Perfecto para cortes duros.</p>`
+      },
+      comparativa: {
+        title: '⚖️ Escaldado vs Cocción',
+        text: `<p><strong>Escaldado:</strong> breve, solo pretratamiento, choque térmico obligatorio.<br><strong>Cocción:</strong> transformación total, tiempos largos, sin choque térmico.</p>`
+      }
+    };
+
+    const nodeOrder = [
+      'raiz_escaldado', 'definicion_escaldado', 'objetivos_escaldado', 'metodos_escaldado', 'efectos_escaldado', 'errores_escaldado',
+      'raiz_coccion', 'definicion_coccion', 'calor_seco', 'calor_humedo', 'calor_mixto', 'comparativa'
+    ];
+
+    let currentIndex = 0;
+    const allNodes = document.querySelectorAll('[data-topic]');
+    const infoTitle = document.getElementById('infoTitle');
+    const infoContent = document.getElementById('infoContent');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const stepIndicator = document.getElementById('stepIndicator');
+
+    function removeActiveClasses() {
+      allNodes.forEach(n => n.classList.remove('active'));
+    }
+
+    function showTopic(topicKey) {
+      removeActiveClasses();
+      const activeNode = document.querySelector(`[data-topic="${topicKey}"]`);
+      if (activeNode) activeNode.classList.add('active');
+      const data = content[topicKey];
+      if (data) {
+        infoTitle.textContent = data.title;
+        infoContent.innerHTML = data.text;
+      }
+    }
+
+    function goToIndex(index) {
+      if (index >= 0 && index < nodeOrder.length) {
+        currentIndex = index;
+        showTopic(nodeOrder[index]);
+        stepIndicator.textContent = `Nodo ${index+1} de ${nodeOrder.length}`;
+        prevBtn.disabled = (index === 0);
+        nextBtn.disabled = (index === nodeOrder.length - 1);
+      }
+    }
+
+    allNodes.forEach(node => {
+      node.addEventListener('click', () => {
+        const topic = node.dataset.topic;
+        const idx = nodeOrder.indexOf(topic);
+        if (idx !== -1) goToIndex(idx);
+        else showTopic(topic); // fallback
+      });
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentIndex > 0) goToIndex(currentIndex - 1);
+    });
+    nextBtn.addEventListener('click', () => {
+      if (currentIndex < nodeOrder.length - 1) goToIndex(currentIndex + 1);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (currentIndex < nodeOrder.length - 1) goToIndex(currentIndex + 1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (currentIndex > 0) goToIndex(currentIndex - 1);
+      }
+    });
+
+    // Iniciar
+    goToIndex(0);
+  })();
+</script>
+</body>
+</html>
